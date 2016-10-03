@@ -4,8 +4,6 @@
  */
 package com.newfound.rest.client;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -19,6 +17,7 @@ import org.springframework.security.crypto.codec.Base64;
 import org.springframework.web.client.RestTemplate;
 
 import com.newfound.rest.server.model.Person;
+import com.newfound.rest.server.model.PersonList;
 
 public class RestTemplateClient implements RestClientConstants {
 
@@ -32,9 +31,18 @@ public class RestTemplateClient implements RestClientConstants {
 	private <T> void getHttpResponseInfo(ResponseEntity<T> responseEntity) {
 		MediaType contentType = responseEntity.getHeaders().getContentType();
 		HttpStatus statusCode = responseEntity.getStatusCode();
-		
-		System.out.println("ContentType: " + contentType);
-		System.out.println("StatusCode: " + statusCode);
+
+		log.info("\n");
+		log.info("ContentType: " + contentType);
+		log.info("StatusCode: " + statusCode);
+
+		PersonList persons = (PersonList) responseEntity.getBody();
+		log.info("Code: " + persons.getCode());
+		log.info("Message: " + persons.getMessage());
+
+		for (Person person : persons.getPersons()) {
+			log.info(person.toString());
+		}
 	}
 
 	/**
@@ -51,43 +59,34 @@ public class RestTemplateClient implements RestClientConstants {
 		 * Find by ID
 		 */
 		{
-			HttpEntity<Person> requestEntity = new HttpEntity<Person>(headers);
+			HttpEntity<PersonList> requestEntity = new HttpEntity<PersonList>(headers);
 			String resourceUrl = REST_SERVICE_URL + FIND_BY_ID + "." + ResponseFormat.XML.getFormat();
-			ResponseEntity<Person> responseEntity = restTemplate.exchange(resourceUrl, HttpMethod.GET, requestEntity,
-					new ParameterizedTypeReference<Person>() {
+			ResponseEntity<PersonList> responseEntity = restTemplate.exchange(resourceUrl, HttpMethod.GET,
+					requestEntity, new ParameterizedTypeReference<PersonList>() {
 					});
-			Person person = responseEntity.getBody();
-			log.info("\n" + person.toString());
-
 			getHttpResponseInfo(responseEntity);
 		}
 		/**
 		 * Create Person
 		 */
 		{
-			HttpEntity<Person> requestEntity = new HttpEntity<Person>(headers);
+			HttpEntity<PersonList> requestEntity = new HttpEntity<PersonList>(headers);
 			String resourceUrl = REST_SERVICE_URL + CREATE;
-			ResponseEntity<Person> responseEntity = restTemplate.exchange(resourceUrl, HttpMethod.POST, requestEntity,
-					new ParameterizedTypeReference<Person>() {
+			ResponseEntity<PersonList> responseEntity = restTemplate.exchange(resourceUrl, HttpMethod.POST,
+					requestEntity, new ParameterizedTypeReference<PersonList>() {
 					});
-			Person person = responseEntity.getBody();
-			log.info("\n" + person.toString());
+			getHttpResponseInfo(responseEntity);
 		}
 		/**
 		 * Find By GENDER (MALE)
 		 */
 		{
-			log.info("\n");
-			HttpEntity<List<Person>> requestEntity = new HttpEntity<List<Person>>(headers);
+			HttpEntity<PersonList> requestEntity = new HttpEntity<PersonList>(headers);
 			String resourceUrl = REST_SERVICE_URL + FIND_BY_GENDER_MALE;
 
-			ResponseEntity<List<Person>> responseEntity = restTemplate.exchange(resourceUrl, HttpMethod.GET, requestEntity,
-					new ParameterizedTypeReference<List<Person>>() {
+			ResponseEntity<PersonList> responseEntity = restTemplate.exchange(resourceUrl, HttpMethod.GET,
+					requestEntity, new ParameterizedTypeReference<PersonList>() {
 					});
-			List<Person> persons = (List<Person>) responseEntity.getBody();
-			for (Person person : persons) {
-				log.info(person.toString());
-			}
 			getHttpResponseInfo(responseEntity);
 		}
 	}
